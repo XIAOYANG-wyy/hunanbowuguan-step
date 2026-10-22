@@ -1,0 +1,57 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+:root{
+  --bg:#030507;
+  --text:#f0f0f0;
+  --accent:#ffdd88;
+  --card:rgba(255,255,255,0.06);
+  --border:rgba(255,255,255,0.12);
+}
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--text);
+  font-family: "Noto Sans SC", system-ui, sans-serif;
+}
+.experience{
+  width:100%;
+  height:100vh;
+  position:relative;
+}
+#renderHost{
+  width:100%;
+  height:100%;
+}
+.hud-card{
+  position:absolute;
+  top:24px;
+  left:24px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:18px;
+  backdrop-filter: blur(8px);
+}
+.hud-title{
+  font-size:18px;
+  color:var(--accent);
+  margin-bottom:8px;
+}
+.hud-tip{
+  font-size:14px;
+  color:#ccc;
+}
+#cameraVideo{
+  position:fixed;
+  right:10px;
+  bottom:10px;
+  width:200px;
+  transform: scaleX(-1);
+  border-radius:8px;
+  opacity:0.8;
+}
