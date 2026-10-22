@@ -24,7 +24,11 @@
   <body>
     <main class="experience" id="experience">
       <div class="render-host" id="renderHost"></div>
-      <video id="cameraVideo" autoplay playsinline muted style="position:fixed;right:10px;bottom:10px;width:200px;transform:scaleX(-1);"></video>
+      <div class="hud-card">
+        <p class="hud-title">三湘器物 · 流光</p >
+        <p class="hud-tip">将手掌放到画面内，吸引流光粒子</p >
+      </div>
+      <video id="cameraVideo" autoplay playsinline muted></video>
     </main>
 
 <script type="module">
@@ -40,7 +44,6 @@ host.appendChild(renderer.domElement);
 const count = 1200;
 const geo = new THREE.BufferGeometry();
 const positions = new Float32Array(count * 3);
-// 保存粒子原始位置
 const originPos = new Float32Array(count * 3);
 for(let i = 0; i < count; i++){
   const x = (Math.random()-0.5)*8;
@@ -71,9 +74,7 @@ async function detectHand(){
   if(!handModel) return;
   const hands = await handModel.estimateHands(videoEl);
   if(hands.length > 0){
-    // 获取手掌中心
     const palm = hands[0].annotations.palmBase[0];
-    // 映射到三维空间坐标
     handX = (palm[0] / videoEl.clientWidth - 0.5) * 8;
     handY = -(palm[1] / videoEl.clientHeight - 0.5) * 8;
   }
@@ -91,7 +92,6 @@ const posAttr = geo.attributes.position;
 function animate(){
   requestAnimationFrame(animate);
 
-  // 粒子被手掌吸引
   for(let i=0;i<count;i++){
     const ix = i*3;
     const dx = handX - posAttr.array[ix];
@@ -101,7 +101,6 @@ function animate(){
       posAttr.array[ix] += dx * 0.03;
       posAttr.array[ix+1] += dy * 0.03;
     }else{
-      // 慢慢回到原位
       posAttr.array[ix] += (originPos[ix] - posAttr.array[ix]) * 0.02;
       posAttr.array[ix+1] += (originPos[ix+1] - posAttr.array[ix+1]) * 0.02;
     }
