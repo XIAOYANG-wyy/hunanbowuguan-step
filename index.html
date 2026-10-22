@@ -18,18 +18,54 @@
         }
       }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
   </head>
   <body>
     <main class="experience" id="experience">
-      <div class="render-host" id="renderHost"></div>
-      <div class="hud-card">
-        <p class="hud-title">三湘器物 · 流光</p >
-        <p class="hud-tip">握拳聚拢粒子，张开手粒子散开</p >
+      <div class="render-host" id="renderHost" aria-label="手势控制的文物粒子三维展台"></div>
+
+      <section class="hud-card" aria-label="手势识别状态">
+        <p class="hud-title">三湘器物 <span>·</span> 流光</p>
+        <p class="hud-current">手势：<strong id="gestureState" aria-live="polite">等待开启</strong></p>
+        <div class="gesture-legend">
+          <span><b class="hand-mark">掌</b>张开：扩散</span>
+          <i></i><span><b class="hand-mark">拳</b>握拳：聚合</span>
+          <span><b class="hand-mark">1</b>单指：移动</span>
+          <i></i><span><b class="hand-mark">2</b>双指：变色</span>
+        </div>
+        <p class="hud-hint" id="gestureHint">允许摄像头后开始识别</p>
+      </section>
+
+      <div class="artifact-label" aria-live="polite">
+        <span class="label-index" id="artifactIndex">01 / 06</span>
+        <span class="label-name" id="artifactName">青铜礼器</span>
       </div>
-      <video id="cameraVideo" autoplay playsinline muted></video>
+
+      <div class="top-actions">
+        <span class="privacy-note"><i></i>画面仅在本机处理</span>
+        <button class="camera-button" id="cameraButton" type="button" aria-label="开启手势识别">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 16 4h4a1 1 0 0 1 1 1v14H3V5a1 1 0 0 1 1-1h4l1.5 2.5h5Z"/><circle cx="12" cy="12" r="4"/></svg>
+          <span id="cameraButtonText">开启手势</span>
+        </button>
+      </div>
+
+      <div class="camera-frame" id="cameraFrame" hidden>
+        <video id="cameraVideo" autoplay playsinline muted></video>
+        <span class="camera-live"><i></i>LIVE</span>
+      </div>
+
+      <div class="scene-tools" aria-label="粒子效果控制">
+        <button type="button" data-effect="scatter" aria-label="扩散粒子">扩散</button>
+        <button type="button" data-effect="gather" aria-label="聚合粒子">聚合</button>
+        <button type="button" data-effect="color" aria-label="切换粒子颜色">变色</button>
+      </div>
+
+      <nav class="artifact-switcher" id="artifactSwitcher" aria-label="选择粒子文物"></nav>
+
+      <div class="gesture-state-line" id="statusLine" role="status" aria-live="polite">
+        <span class="status-led"></span><span id="statusText">粒子已就绪 · 开启摄像头体验手势</span>
+      </div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </main>
-    <script type="module" src="./app.js"></script>
+    <script type="module" src="app.js"></script>
   </body>
 </html>

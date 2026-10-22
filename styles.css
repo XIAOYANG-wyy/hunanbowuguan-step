@@ -1,57 +1,82 @@
-*{
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+:root {
+  color-scheme: dark;
+  --void: #030507;
+  --panel: rgba(3, 8, 17, .78);
+  --cyan: #20d9f4;
+  --cyan-dim: rgba(55, 196, 220, .72);
+  --white: #edf7f8;
+  --muted: #a7b5be;
+  --line: rgba(53, 191, 214, .58);
+  --mono: "DM Mono", monospace;
+  --sans: "Noto Sans SC", "PingFang SC", sans-serif;
 }
-:root{
-  --bg:#030507;
-  --text:#f0f0f0;
-  --accent:#ffdd88;
-  --card:rgba(255,255,255,0.06);
-  --border:rgba(255,255,255,0.12);
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: var(--void); }
+body { color: var(--white); font-family: var(--sans); }
+button { color: inherit; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+.experience { position: relative; width: 100%; height: 100%; min-height: 100svh; overflow: hidden; isolation: isolate; background: var(--void); }
+.render-host { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+.render-host canvas { display: block; width: 100%; height: 100%; }
+.hud-card { position: absolute; z-index: 2; top: max(28px, env(safe-area-inset-top)); left: max(30px, env(safe-area-inset-left)); width: 292px; padding: 18px 20px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); box-shadow: 0 0 22px rgba(20, 203, 229, .06), inset 0 0 20px rgba(14, 76, 100, .07); backdrop-filter: blur(12px); }
+.hud-title { margin: 0 0 7px; color: var(--cyan); font-size: 20px; line-height: 1.35; font-weight: 700; }
+.hud-title span { color: #83ecf8; padding: 0 2px; }
+.hud-current { margin: 0 0 12px; font-size: 15px; font-weight: 500; }
+.hud-current strong { color: var(--cyan); font-weight: 700; }
+.gesture-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 7px; color: #c4ced3; font-size: 11px; line-height: 1.6; }
+.gesture-legend i { width: 2px; height: 11px; background: rgba(155, 183, 193, .4); }
+.hand-mark { display: inline-grid; place-items: center; width: 16px; height: 16px; margin-right: 3px; border: 1px solid rgba(32,217,244,.6); border-radius: 4px; color: var(--cyan); font-family: var(--mono); font-size: 9px; font-weight: 500; }
+.hud-hint { margin: 11px 0 0; color: #83a2ad; font-size: 10px; }
+.artifact-label { position: absolute; z-index: 1; top: 38px; left: 50%; display: flex; align-items: center; gap: 12px; transform: translateX(-50%); text-align: center; white-space: nowrap; text-shadow: 0 1px 12px #000; }
+.label-index { color: var(--cyan); font: 11px var(--mono); letter-spacing: 1px; }
+.label-name { color: #e5f0f1; font-size: 13px; letter-spacing: 1px; }
+.top-actions { position: absolute; z-index: 3; top: max(28px, env(safe-area-inset-top)); right: max(30px, env(safe-area-inset-right)); display: flex; align-items: center; gap: 18px; }
+.privacy-note { display: flex; align-items: center; gap: 7px; color: #8497a2; font-size: 10px; }
+.privacy-note i, .camera-live i, .status-led { width: 6px; height: 6px; display: inline-block; border-radius: 50%; background: #3bd7b2; box-shadow: 0 0 8px rgba(59,215,178,.85); }
+.camera-button { min-height: 42px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border: 1px solid var(--line); border-radius: 7px; background: rgba(3, 13, 23, .78); color: #d8f8fb; font-size: 11px; transition: .18s ease; }
+.camera-button svg { width: 17px; height: 17px; fill: none; stroke: var(--cyan); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.camera-button:hover, .camera-button[aria-pressed="true"] { color: white; border-color: var(--cyan); background: rgba(17, 105, 125, .46); box-shadow: 0 0 15px rgba(32,217,244,.13); }
+.camera-button:disabled { opacity: .6; cursor: wait; }
+.camera-frame { position: absolute; z-index: 3; right: max(28px, env(safe-area-inset-right)); bottom: 102px; width: 216px; aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #05090d; box-shadow: 0 0 22px rgba(15, 187, 218, .12); }
+.camera-frame[hidden] { display: none; }
+.camera-frame video { display: block; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); opacity: .78; }
+.camera-live { position: absolute; left: 9px; bottom: 7px; display: flex; align-items: center; gap: 5px; color: white; font: 9px var(--mono); text-shadow: 0 1px 4px #000; }
+.camera-live i { width: 5px; height: 5px; }
+.scene-tools { position: absolute; z-index: 2; right: max(30px, env(safe-area-inset-right)); bottom: 34px; display: flex; gap: 7px; }
+.scene-tools button { min-width: 60px; height: 34px; padding: 0 11px; border: 1px solid rgba(93, 123, 139, .5); border-radius: 5px; background: rgba(4, 10, 17, .72); color: #aab9c2; font-size: 11px; transition: color .18s, border-color .18s, background .18s; }
+.scene-tools button:hover, .scene-tools button.active { color: var(--cyan); border-color: var(--cyan-dim); background: rgba(11, 61, 74, .48); }
+.artifact-switcher { position: absolute; z-index: 2; left: 50%; bottom: 31px; display: flex; align-items: center; gap: 7px; max-width: calc(100% - 400px); transform: translateX(-50%); }
+.artifact-choice { min-height: 38px; padding: 0 12px; border: 1px solid rgba(80, 111, 127, .44); border-radius: 5px; background: rgba(3, 9, 16, .7); color: #aab7bd; font-size: 10px; white-space: nowrap; transition: .2s ease; }
+.artifact-choice:hover, .artifact-choice[aria-pressed="true"] { color: #d9fbff; border-color: var(--cyan-dim); background: rgba(10, 66, 80, .48); }
+.artifact-choice[aria-pressed="true"]::before { content: ""; display: inline-block; width: 5px; height: 5px; margin: 0 7px 1px 0; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.gesture-state-line { position: absolute; z-index: 2; left: max(30px, env(safe-area-inset-left)); bottom: 39px; display: flex; align-items: center; gap: 8px; color: #82929b; font-size: 10px; text-shadow: 0 1px 8px #000; }
+.status-led { width: 5px; height: 5px; background: #4f8390; box-shadow: none; }
+.gesture-state-line.is-live .status-led { background: #45e3bd; box-shadow: 0 0 8px rgba(69,227,189,.8); }
+.toast { position: absolute; z-index: 5; top: 110px; left: 50%; transform: translate(-50%, -6px); padding: 9px 14px; border: 1px solid var(--line); border-radius: 6px; background: rgba(3, 11, 19, .88); color: #dffbfe; font-size: 11px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+.toast.visible { opacity: 1; transform: translate(-50%, 0); }
+@media (max-width: 900px) {
+  .hud-card { top: max(18px, env(safe-area-inset-top)); left: max(18px, env(safe-area-inset-left)); width: 258px; padding: 14px 15px 12px; }
+  .hud-title { font-size: 17px; }.hud-current { font-size: 13px; margin-bottom: 8px; }.gesture-legend { font-size: 10px; gap: 4px 6px; }.hud-hint { margin-top: 8px; }
+  .top-actions { top: max(18px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right)); }.privacy-note { display: none; }
+  .artifact-switcher { bottom: max(24px, env(safe-area-inset-bottom)); max-width: calc(100% - 40px); gap: 5px; flex-wrap: wrap; justify-content: center; }
+  .artifact-choice { min-height: 35px; padding: 0 9px; font-size: 9px; }
+  .gesture-state-line { left: max(18px, env(safe-area-inset-left)); bottom: max(31px, env(safe-area-inset-bottom)); max-width: calc(100% - 36px); font-size: 9px; }
+  .scene-tools { right: max(18px, env(safe-area-inset-right)); bottom: max(82px, calc(env(safe-area-inset-bottom) + 74px)); }.scene-tools button { min-width: 52px; height: 32px; padding: 0 8px; font-size: 10px; }
+  .camera-frame { width: 150px; right: max(18px, env(safe-area-inset-right)); bottom: max(126px, calc(env(safe-area-inset-bottom) + 118px)); }
+  .artifact-label { top: auto; bottom: 100px; left: 50%; }
 }
-html,body{
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  background:var(--bg);
-  color:var(--text);
-  font-family: "Noto Sans SC", system-ui, sans-serif;
+@media (max-width: 540px) {
+  .hud-card { width: min(234px, calc(100vw - 142px)); padding: 11px 12px; border-radius: 9px; }
+  .hud-title { font-size: 15px; }.hud-current { font-size: 11px; margin: 4px 0 7px; }.gesture-legend { font-size: 8px; gap: 3px 5px; }.hand-mark { width: 14px; height: 14px; font-size: 8px; }.hud-hint { font-size: 8px; margin-top: 6px; }
+  .camera-button { width: 42px; min-width: 42px; min-height: 42px; padding: 0; justify-content: center; }.camera-button span { display: none; }
+  .artifact-label { top: 151px; bottom: auto; transform: translateX(-50%); gap: 7px; }.label-index { font-size: 9px; }.label-name { font-size: 10px; }
+  .camera-frame { width: 112px; bottom: max(124px, calc(env(safe-area-inset-bottom) + 116px)); }
+  .scene-tools { bottom: max(81px, calc(env(safe-area-inset-bottom) + 74px)); gap: 4px; }.scene-tools button { min-width: 45px; height: 30px; padding: 0 6px; font-size: 9px; }
+  .artifact-switcher { bottom: max(19px, env(safe-area-inset-bottom)); max-width: calc(100% - 24px); gap: 4px; }.artifact-choice { min-height: 32px; padding: 0 7px; font-size: 8px; }
+  .gesture-state-line { bottom: max(63px, calc(env(safe-area-inset-bottom) + 57px)); font-size: 8px; }
 }
-.experience{
-  width:100%;
-  height:100vh;
-  position:relative;
+@media (max-height: 500px) and (orientation: landscape) {
+  .hud-card { top: 12px; padding: 10px 12px; }.top-actions { top: 12px; }.camera-frame { width: 140px; bottom: 72px; }
+  .scene-tools { bottom: 15px; }.artifact-switcher { bottom: 12px; }.artifact-choice { min-height: 31px; }.gesture-state-line { bottom: 22px; }
 }
-#renderHost{
-  width:100%;
-  height:100%;
-}
-.hud-card{
-  position:absolute;
-  top:24px;
-  left:24px;
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:18px;
-  backdrop-filter: blur(8px);
-}
-.hud-title{
-  font-size:18px;
-  color:var(--accent);
-  margin-bottom:8px;
-}
-.hud-tip{
-  font-size:14px;
-  color:#ccc;
-}
-#cameraVideo{
-  position:fixed;
-  right:10px;
-  bottom:10px;
-  width:200px;
-  transform: scaleX(-1);
-  border-radius:8px;
-  opacity:0.8;
-}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; } }
