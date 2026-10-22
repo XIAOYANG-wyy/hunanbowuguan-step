@@ -18,10 +18,14 @@
         }
       }
     </script>
+    <!-- 新增：手势识别库 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
   </head>
   <body>
     <main class="experience" id="experience">
       <div class="render-host" id="renderHost"></div>
+      <video id="cameraVideo" autoplay playsinline muted style="position:fixed;right:10px;bottom:10px;width:200px;transform:scaleX(-1);"></video>
     </main>
 
 <script type="module">
@@ -34,7 +38,7 @@ const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(host.clientWidth, host.clientHeight);
 host.appendChild(renderer.domElement);
 
-// 生成静态粒子
+// 粒子
 const count = 1200;
 const geo = new THREE.BufferGeometry();
 const positions = new Float32Array(count * 3);
@@ -47,8 +51,30 @@ geo.setAttribute('position', new THREE.BufferAttribute(positions,3));
 const mat = new THREE.PointsMaterial({color:0xffdd88, size:0.08});
 const points = new THREE.Points(geo, mat);
 scene.add(points);
-
 camera.position.z = 5;
+
+// ========= 新增摄像头 + handpose =========
+let handModel = null;
+const videoEl = document.getElementById('cameraVideo');
+
+async function initHandPose(){
+  handModel = await handpose.load();
+  detectHand();
+}
+async function detectHand(){
+  if(!handModel) return;
+  const hands = await handModel.estimateHands(videoEl);
+  // 现在只检测，暂时不控制粒子
+  setTimeout(detectHand,50);
+}
+// 开启摄像头
+navigator.mediaDevices.getUserMedia({video:true})
+.then(stream=>{
+  videoEl.srcObject = stream;
+  initHandPose();
+})
+.catch(err=>console.log("摄像头开启失败",err));
+// ========================================
 
 function animate(){
   requestAnimationFrame(animate);
