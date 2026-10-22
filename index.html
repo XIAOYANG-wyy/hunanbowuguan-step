@@ -18,7 +18,6 @@
         }
       }
     </script>
-    <!-- 新增：手势识别库 -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
   </head>
@@ -38,14 +37,21 @@ const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(host.clientWidth, host.clientHeight);
 host.appendChild(renderer.domElement);
 
-// 粒子
 const count = 1200;
 const geo = new THREE.BufferGeometry();
 const positions = new Float32Array(count * 3);
+// 保存粒子原始位置
+const originPos = new Float32Array(count * 3);
 for(let i = 0; i < count; i++){
-  positions[i*3] = (Math.random()-0.5)*8;
-  positions[i*3+1] = (Math.random()-0.5)*8;
-  positions[i*3+2] = (Math.random()-0.5)*8;
+  const x = (Math.random()-0.5)*8;
+  const y = (Math.random()-0.5)*8;
+  const z = (Math.random()-0.5)*8;
+  positions[i*3] = x;
+  positions[i*3+1] = y;
+  positions[i*3+2] = z;
+  originPos[i*3] = x;
+  originPos[i*3+1] = y;
+  originPos[i*3+2] = z;
 }
 geo.setAttribute('position', new THREE.BufferAttribute(positions,3));
 const mat = new THREE.PointsMaterial({color:0xffdd88, size:0.08});
@@ -53,8 +59,8 @@ const points = new THREE.Points(geo, mat);
 scene.add(points);
 camera.position.z = 5;
 
-// ========= 新增摄像头 + handpose =========
 let handModel = null;
+let handX = 0, handY = 0;
 const videoEl = document.getElementById('cameraVideo');
 
 async function initHandPose(){
@@ -64,21 +70,45 @@ async function initHandPose(){
 async function detectHand(){
   if(!handModel) return;
   const hands = await handModel.estimateHands(videoEl);
-  // 现在只检测，暂时不控制粒子
+  if(hands.length > 0){
+    // 获取手掌中心
+    const palm = hands[0].annotations.palmBase[0];
+    // 映射到三维空间坐标
+    handX = (palm[0] / videoEl.clientWidth - 0.5) * 8;
+    handY = -(palm[1] / videoEl.clientHeight - 0.5) * 8;
+  }
   setTimeout(detectHand,50);
 }
-// 开启摄像头
 navigator.mediaDevices.getUserMedia({video:true})
 .then(stream=>{
   videoEl.srcObject = stream;
   initHandPose();
 })
 .catch(err=>console.log("摄像头开启失败",err));
-// ========================================
 
+
+const posAttr = geo.attributes.position;
 function animate(){
   requestAnimationFrame(animate);
-  points.rotation.y += 0.002;
+
+  // 粒子被手掌吸引
+  for(let i=0;i<count;i++){
+    const ix = i*3;
+    const dx = handX - posAttr.array[ix];
+    const dy = handY - posAttr.array[ix+1];
+    const dist = Math.sqrt(dx*dx+dy*dy);
+    if(dist < 2.5){
+      posAttr.array[ix] += dx * 0.03;
+      posAttr.array[ix+1] += dy * 0.03;
+    }else{
+      // 慢慢回到原位
+      posAttr.array[ix] += (originPos[ix] - posAttr.array[ix]) * 0.02;
+      posAttr.array[ix+1] += (originPos[ix+1] - posAttr.array[ix+1]) * 0.02;
+    }
+  }
+  posAttr.needsUpdate = true;
+
+  points.rotation.y += 0.001;
   renderer.render(scene, camera);
 }
 animate();
