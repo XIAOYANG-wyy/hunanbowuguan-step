@@ -40,6 +40,9 @@ let rawPose = "none";
 let candidatePose = "none";
 let candidateSince = 0;
 let activePose = "none";
+let swipeStartX;
+let swipeStartAt = 0;
+let lastSwipeAt = -Infinity;
 let toastTimer;
 const clock = new THREE.Clock();
 
@@ -122,7 +125,7 @@ function isExhibitPixel(r, g, b, px, py, polygon) {
 
 function pointScale() {
   const height = ui.host.clientHeight * renderer.getPixelRatio();
-  const worldSize = window.innerWidth < 600 ? .031 : .026;
+  const worldSize = window.innerWidth < 600 ? .024 : .02;
   return worldSize * height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
 }
 
@@ -137,7 +140,7 @@ function pixelCloud(image, polygon) {
   const positions = [];
   const luminance = [];
   const scatter = [];
-  const step = 1.5;
+  const step = 1;
   const aspect = image.naturalWidth / image.naturalHeight;
   for (let y = 0; y < size; y += step) {
     for (let x = 0; x < size; x += step) {
@@ -197,9 +200,11 @@ async function createParticleCloud(index) {
       varying float vLuminance;
       void main() {
         float distanceFromCenter = length(gl_PointCoord - vec2(0.5));
-        float glow = 1.0 - smoothstep(0.12, 0.5, distanceFromCenter);
-        if (glow < 0.025) discard;
-        gl_FragColor = vec4(uColor * min(1.25, vLuminance * 1.2), glow * 0.68);
+        float core = 1.0 - smoothstep(0.28, 0.38, distanceFromCenter);
+        float glow = 1.0 - smoothstep(0.38, 0.5, distanceFromCenter);
+        float alpha = max(core, glow * 0.18);
+        if (alpha < 0.025) discard;
+        gl_FragColor = vec4(uColor * min(1.25, vLuminance * 1.2), alpha * 0.82);
       }
     `,
     transparent: true,
@@ -233,6 +238,7 @@ function setScatter(value, announce = true) {
   setStatus(value ? "光点向外散开" : "光点重新聚合", `手势：${label}`);
   if (announce) flash(value ? "张开手掌 · 光点扩散" : "握拳 · 光点聚合");
 }
+
 function cyclePalette() {
   activePalette = (activePalette + 1) % palettes.length;
   if (particleMesh) paintCloud(particleMesh.geometry, activePalette);
@@ -351,6 +357,7 @@ function handlePose(pose, now) {
 function handleHand(result, now) {
   const hand = result.landmarks?.[0];
   if (!hand) {
+    swipeStartX = undefined;
     handlePose("none", now);
     if (stream && activePose === "none") {
       ui.gesture.textContent = "手势：未检测到";
@@ -360,6 +367,21 @@ function handleHand(result, now) {
   }
   const pose = classifyPose(hand);
   handlePose(pose, now);
+  if (pose === "open") {
+    if (swipeStartX === undefined || now - swipeStartAt > 700) {
+      swipeStartX = hand[0].x;
+      swipeStartAt = now;
+    } else if (now - lastSwipeAt > 900 && Math.abs(swipeStartX - hand[0].x) > .2) {
+      const direction = swipeStartX > hand[0].x ? 1 : -1;
+      selectArtifact(activeArtifact + direction);
+      lastSwipeAt = now;
+      swipeStartX = hand[0].x;
+      swipeStartAt = now;
+      flash(direction > 0 ? "向右挥手 · 下一件文物" : "向左挥手 · 上一件文物");
+    }
+  } else {
+    swipeStartX = undefined;
+  }
   if (pose === "move" && moveMode) {
     const x = THREE.MathUtils.clamp((.5 - hand[8].x) * 5.4, -2.3, 2.3);
     const y = THREE.MathUtils.clamp((.5 - hand[8].y) * 4.1, -1.8, 1.8);
